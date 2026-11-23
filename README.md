@@ -253,4 +253,8 @@ checkpoints/
 
 ## License
 
-No license has been added yet. Until one is provided, all rights are reserved.
+Released under the [MIT License](LICENSE).
+
+```
+Copyright (c) 2026 QiaoYue Man
+```
