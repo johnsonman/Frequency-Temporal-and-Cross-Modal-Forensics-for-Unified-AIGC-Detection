@@ -23,6 +23,43 @@ evidence (attention maps, filter responses, spectrograms) used to justify the de
 
 ---
 
+## Showcase
+
+Outputs of the per-module diagnostic scripts (`_test_image_modules.py`,
+`_audio_modules.py`, `_audio_compare.py`). Chinese labels appear on the image-side
+panels; the audio comparison panels are in English.
+
+### Image branch — 12-panel per-module decomposition
+
+Input, CLIP preprocessing, 12-layer attention rollout, classifier output, SRM residual
+filters, SRM 1×1 projection, FFT magnitude and phase, MSFF scale attention,
+inter-layer CLS similarity, feature norms and gate weights.
+
+![Image module panels](docs/showcase/01_image_module_panels.jpg)
+
+| Module summary | Forensics summary |
+|---|---|
+| ![Module summary](docs/showcase/02_image_module_summary.jpg) | ![Forensics summary](docs/showcase/03_image_forensics_summary.jpg) |
+
+### Audio branch — layer attention
+
+CLS-to-Patch attention for each of the six Transformer layers. Later layers concentrate
+on the active speech region and ignore the zero-padded tail.
+
+![Audio layer attention](docs/showcase/04_audio_layer_attention.jpg)
+
+### Audio branch — real vs AI-generated
+
+| Full-band spectrum | Log-Mel spectrograms |
+|---|---|
+| ![Spectral profile](docs/showcase/05_audio_spectral_profile.jpg) | ![Log-Mel comparison](docs/showcase/06_audio_logmel_vs_real.jpg) |
+
+| Attention comparison | Discriminative metrics |
+|---|---|
+| ![Attention comparison](docs/showcase/07_audio_attention_vs_real.jpg) | ![Metric bars](docs/showcase/08_audio_metric_bars.jpg) |
+
+---
+
 ## Model components
 
 | Module | Class | File |
@@ -59,6 +96,7 @@ Backbones: `openai/clip-vit-base-patch16` (image/video, shared) and
 ├── utils/                       # visualization helpers
 ├── docs/
 │   ├── architecture/            # 6 architecture diagrams
+│   ├── showcase/                # example diagnostic outputs (JPEG)
 │   └── AIGC_Detection_System.pptx
 ├── run_gui.py                   # Tkinter GUI (batch scan, export JSON)
 ├── train.py                     # training entry point
