@@ -1,0 +1,155 @@
+{
+  "image": {
+    "weights": {
+      "freq_ratio": {
+        "sign": -1.0,
+        "weight": 0.3559005991508508,
+        "fake_mean": 0.06874992298855519,
+        "fake_std": 0.026817232744305114
+      },
+      "srm_std_ratio": {
+        "sign": 1.0,
+        "weight": 0.49661480510716316,
+        "fake_mean": 0.5869263373315334,
+        "fake_std": 0.11275502206236644
+      },
+      "local_var": {
+        "sign": -1.0,
+        "weight": 0.6029465227696127,
+        "fake_mean": 0.07229617750272155,
+        "fake_std": 0.057803668252916295
+      },
+      "blockiness": {
+        "sign": -1.0,
+        "weight": 0.8099278207101864,
+        "fake_mean": 5.442375975440352,
+        "fake_std": 3.461598172414277
+      },
+      "color_entropy": {
+        "sign": -1.0,
+        "weight": 0.2926412174994619,
+        "fake_mean": 0.8991638026703399,
+        "fake_std": 0.152838765654153
+      }
+    },
+    "contrib_min": -5.680219667961635,
+    "contrib_max": 1.7228812784720908,
+    "threshold": 0.47000000000000025,
+    "metrics": {
+      "acc": 0.8260869565217391,
+      "thr": 0.47000000000000025,
+      "TP": 15,
+      "TN": 4,
+      "FP": 3,
+      "FN": 1
+    },
+    "strategy_thresholds": {
+      "neural": 0.417,
+      "heuristic": 0.47000000000000025
+    }
+  },
+  "video": {
+    "weights": {
+      "avg_blockiness": {
+        "sign": -1.0,
+        "weight": 2.0,
+        "fake_mean": 2.419141969816982,
+        "fake_std": 1.477995396023063
+      },
+      "avg_local_var": {
+        "sign": -1.0,
+        "weight": 1.4975641855055455,
+        "fake_mean": 0.05001666192979818,
+        "fake_std": 0.04925248120659485
+      },
+      "avg_fft_hf": {
+        "sign": -1.0,
+        "weight": 1.4990755079360591,
+        "fake_mean": 0.9863525946267874,
+        "fake_std": 0.004146960763054961
+      },
+      "avg_srm_mean": {
+        "sign": -1.0,
+        "weight": 0.05267102638476759,
+        "fake_mean": 33.499969961983815,
+        "fake_std": 13.379317862868971
+      },
+      "avg_srm_entropy": {
+        "sign": 1.0,
+        "weight": 0.35018329178477886,
+        "fake_mean": 3.5496924789124775,
+        "fake_std": 0.7076421699823378
+      },
+      "var_blockiness": {
+        "sign": -1.0,
+        "weight": 1.3691323861705702,
+        "fake_mean": 0.09900466268410263,
+        "fake_std": 0.09621383110524726
+      },
+      "var_fft_hf": {
+        "sign": 1.0,
+        "weight": 0.9407398753104012,
+        "fake_mean": 1.308961928397211e-06,
+        "fake_std": 1.914098826896272e-06
+      },
+      "var_srm_mean": {
+        "sign": 1.0,
+        "weight": 0.8707750341636126,
+        "fake_mean": 3.9272433354136504,
+        "fake_std": 6.151237148478966
+      },
+      "frame_diff_mean": {
+        "sign": 1.0,
+        "weight": 0.7312879164208484,
+        "fake_mean": 13.652329158782958,
+        "fake_std": 9.205765462425774
+      },
+      "frame_diff_std": {
+        "sign": 1.0,
+        "weight": 0.7651468334040193,
+        "fake_mean": 4.901819136738777,
+        "fake_std": 4.429284941710391
+      },
+      "temporal_consistency": {
+        "sign": 1.0,
+        "weight": 0.24706264103773853,
+        "fake_mean": 0.3242888834327459,
+        "fake_std": 0.1854407939811033
+      },
+      "motion_score": {
+        "sign": -1.0,
+        "weight": 0.28250045469391605,
+        "fake_mean": 0.2624635694548488,
+        "fake_std": 0.1740948403290277
+      },
+      "frame_variance": {
+        "sign": -1.0,
+        "weight": 0.4714043489686021,
+        "fake_mean": 0.9870667558767483,
+        "fake_std": 0.03879973236975519
+      }
+    },
+    "contrib_min": -14.449442947030782,
+    "contrib_max": 6.511120409384703,
+    "threshold": 0.6,
+    "metrics": {
+      "acc": 0.8333333333333334,
+      "TP": 9,
+      "TN": 1,
+      "FP": 1,
+      "FN": 1
+    },
+    "strategy_thresholds": {
+      "neural": 0.404,
+      "heuristic": 0.6
+    }
+  },
+  "audio": {
+    "method": "weighted_heuristic"
+  },
+  "ground_truth": {
+    "image_rule": "prefix real_ = Real, else Fake",
+    "video_rule": "prefix real_ = Real, else Fake",
+    "audio_rule": "all Fake"
+  }
+}

@@ -1,0 +1,48 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.uv-cache/
+.pytest_cache/
+
+# ---------- Datasets (large, not versioned) ----------
+data/
+test/
+
+# ---------- Model weights (large) ----------
+checkpoints/*
+!checkpoints/*.json
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.npy
+
+# ---------- Generated outputs ----------
+outputs/
+reports/
+.screenshots/
+.spyproject/
+.trae-html-share-packages/
+
+# ---------- Logs / temp ----------
+*.log
+_debug_out.txt
+_val_out.txt
+_val_result.txt
+_v_out.txt
+
+# ---------- Media ----------
+*.mp4
+*.mp3
+*.wav
+*.flac
+*.avi
+*.mov
+
+# ---------- OS / IDE ----------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,9 @@
+{
+  "checkpoint": "image_best.pt",
+  "threshold": 0.35,
+  "selection_metric": "balanced_accuracy",
+  "validation_source": "data/image_v3",
+  "validation_count": 2447,
+  "validation_seed": 20261107,
+  "note": "Chosen using a stratified validation split; test/image labels were not used for threshold selection."
+}
