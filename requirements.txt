@@ -1,0 +1,37 @@
+# ============================================================
+# Frequency-Temporal and Cross-Modal Forensics
+# for Unified AIGC Detection
+#
+# Install PyTorch first, matching your CUDA version, e.g.:
+#   pip install torch==2.14.0 torchvision==0.29.1 \
+#       --index-url https://download.pytorch.org/whl/cu130
+# Then:
+#   pip install -r requirements.txt
+# ============================================================
+
+# ---------- Core runtime (required for detection) ----------
+torch==2.14.0
+torchvision==0.29.1
+transformers==5.18.0
+numpy==2.5.2
+opencv-python==5.0.0.93
+Pillow==12.3.0
+scipy==1.18.1
+scikit-learn==1.9.1
+librosa==1.0.0
+soundfile==0.14.0
+matplotlib==3.11.2
+PyWavelets==1.10.0
+tqdm==4.70.1
+requests==2.34.2
+
+# ---------- Analysis and reporting (optional) ----------
+# Used by analyze_image_failure.py / create_pptx.py
+timm==0.9.6
+python-pptx==1.0.2
+
+# ---------- Demo asset generation (optional) ----------
+# Only needed by animate_wan.py and animate_alien.py,
+# neither of which is required for AIGC detection.
+# diffusers==0.40.0
+# rembg==2.0.86
