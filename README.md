@@ -3,7 +3,7 @@
 A unified detector for AI-generated **images, videos and audio**, built on a shared CLIP backbone
 plus frequency-domain forensics, temporal aggregation and gated cross-modal fusion.
 
-![Multimodal architecture](docs/architecture/01_multimodal_full.png)
+![Multimodal architecture](docs/architecture/01_multimodal_full.svg)
 
 ---
 
@@ -28,6 +28,15 @@ evidence (attention maps, filter responses, spectrograms) used to justify the de
 Outputs of the per-module diagnostic scripts (`_test_image_modules.py`,
 `_audio_modules.py`, `_audio_compare.py`). Chinese labels appear on the image-side
 panels; the audio comparison panels are in English.
+
+### End-to-end calibrated result
+
+Single-image inference with the calibrated detector: quad-tree SRM residuals, FFT
+magnitude spectrum, ViT attention rollout, DCT coefficients, DWT wavelet detail,
+SGA gated fusion weights per modality, multi-layer CLS token evolution, and the final
+calibrated decision (Real 0.254 / Fake 1.000).
+
+![Calibrated detection result](docs/showcase/00_results_overview.jpg)
 
 ### Image branch — 12-panel per-module decomposition
 
