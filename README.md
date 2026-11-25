@@ -107,16 +107,19 @@ Backbones: `openai/clip-vit-base-patch16` (image/video, shared) and
 │   ├── architecture/            # 6 architecture diagrams
 │   ├── showcase/                # example diagnostic outputs (JPEG)
 │   └── AIGC_Detection_System.pptx
+├── scripts/
+│   ├── train/                   # training, fine-tuning, calibration, DF26 prep
+│   ├── detect/                  # CLI inference, tests and result visualization
+│   ├── diagnose/                # per-module diagnostics, validation, audio analysis
+│   └── assets/                  # figure / PPT / demo-video generators
 ├── run_gui.py                   # Tkinter GUI (batch scan, export JSON)
-├── train.py                     # training entry point
-├── train_video_df26_cached.py   # DF26 video branch training
-├── train_v4.py                  # image branch fine-tuning
-├── detect_*.py                  # CLI inference and visualization
-├── calibrate_detector.py        # threshold calibration
-├── _audio_*.py                  # audio branch analysis and visualization
-├── _test_image_modules.py       # per-module image diagnostics
-└── _df26_extract_npy.py         # lossless frame extraction for DF26
+└── train.py                     # multimodal training entry point
 ```
+
+Scripts resolve the repository root from their own location, so `models/` and
+`utils/` imports work wherever they live. Launch them from the repository root
+(`python scripts/train/train_v4.py`) so that relative dataset and output paths
+resolve as expected.
 
 ---
 
@@ -171,9 +174,9 @@ r = det.detect_audio_file("sample.wav")
 ### Per-module visual diagnostics
 
 ```bash
-python _test_image_modules.py     # 12-panel figure per image
-python _audio_modules.py --lang en --out reports/audio_modules_en
-python _audio_compare.py          # real vs AI comparison figures
+python scripts/diagnose/_test_image_modules.py     # 12-panel figure per image
+python scripts/diagnose/_audio_modules.py --lang en --out reports/audio_modules_en
+python scripts/diagnose/_audio_compare.py          # real vs AI comparison figures
 ```
 
 ---
@@ -184,9 +187,9 @@ All branches are trained with the CLIP / Wav2Vec2 backbones frozen and only the
 adapter, fusion and classification heads updated.
 
 ```bash
-python train.py                    # multimodal training loop
-python train_v4.py                 # image branch, augmented recompression setup
-python train_video_df26_cached.py  # video branch on cached CLIP features
+python train.py                            # multimodal training loop
+python scripts/train/train_v4.py           # image branch, augmented recompression setup
+python scripts/train/train_video_df26_cached.py  # video branch on cached CLIP features
 ```
 
 Key hyper-parameters used for the image branch: AdamW, `lr=3e-4`,
@@ -213,8 +216,8 @@ Datasets, extracted frames, feature caches and checkpoints are **not** committed
 see `.gitignore`. Reproduce them with:
 
 ```bash
-python _df26_extract_npy.py        # extract frames
-python _df26_cache_feats.py        # cache CLIP features
+python scripts/train/_df26_extract_npy.py        # extract frames
+python scripts/train/_df26_cache_feats.py        # cache CLIP features
 ```
 
 ---
