@@ -22,6 +22,7 @@ checkpoints/*
 # ---------- Generated outputs ----------
 outputs/
 reports/
+py_sources/
 .screenshots/
 .spyproject/
 .trae-html-share-packages/
