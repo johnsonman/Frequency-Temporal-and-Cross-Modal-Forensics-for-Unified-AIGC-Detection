@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Frequency-Temporal & Cross-Modal Forensics — Live Demo</title>
+<style>
+  :root{
+    --bg:#0b0f16; --panel:#141a24; --panel2:#1b2330; --line:#26303f;
+    --tx:#e7edf6; --muted:#94a3b8; --accent:#4da3ff; --accent2:#7c5cff;
+    --real:#22c55e; --fake:#f43f5e; --warn:#f59e0b;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(77,163,255,.16), transparent 60%),
+      radial-gradient(900px 460px at 88% 0%, rgba(124,92,255,.14), transparent 60%),
+      var(--bg);
+    color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans SC",sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  header.top{
+    position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);
+    background:rgba(11,15,22,.78);border-bottom:1px solid var(--line);
+  }
+  .top .wrap{display:flex;align-items:center;gap:16px;height:60px}
+  .brand{font-weight:650;letter-spacing:.2px;font-size:15px}
+  .brand span{color:var(--muted);font-weight:400}
+  .top nav{margin-left:auto;display:flex;gap:18px;font-size:13.5px}
+  .top nav a{color:var(--muted)}
+  .top nav a:hover{color:var(--tx)}
+
+  .hero{padding:56px 0 28px}
+  .kicker{
+    display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent);border:1px solid rgba(77,163,255,.35);
+    background:rgba(77,163,255,.08);padding:5px 11px;border-radius:999px;margin-bottom:18px;
+  }
+  h1{margin:0 0 12px;font-size:clamp(26px,4vw,40px);line-height:1.15;letter-spacing:-.02em}
+  h1 em{font-style:normal;background:linear-gradient(92deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:820px;color:var(--muted);font-size:15.5px;margin:0 0 8px}
+  .note{
+    margin-top:16px;font-size:13px;color:#cbd5e1;background:rgba(245,158,11,.08);
+    border:1px solid rgba(245,158,11,.28);border-left:3px solid var(--warn);
+    padding:10px 14px;border-radius:8px;max-width:900px;
+  }
+
+  section{padding:30px 0 8px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+  .sec-head h2{margin:0;font-size:20px;letter-spacing:-.01em}
+  .sec-head .hint{color:var(--muted);font-size:13px}
+
+  .grid{display:grid;gap:16px}
+  .grid.controls{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h3{margin:0 0 10px;font-size:14px;font-weight:600;color:#cbd5e1;letter-spacing:.02em}
+  .card p.sub{margin:-4px 0 12px;font-size:12.5px;color:var(--muted)}
+
+  .drop{
+    border:1.5px dashed #334155;border-radius:12px;min-height:230px;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    text-align:center;padding:22px;transition:.15s;cursor:pointer;background:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 10px,transparent 10px 20px);
+  }
+  .drop:hover,.drop.over{border-color:var(--accent);background:rgba(77,163,255,.06)}
+  .drop .big{font-size:15px;font-weight:600}
+  .drop .small{font-size:12.5px;color:var(--muted)}
+  .drop input{display:none}
+  .btn{
+    appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--tx);
+    padding:8px 14px;border-radius:9px;font-size:13px;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{border-color:var(--accent);color:#fff}
+  .btn.primary{background:linear-gradient(92deg,var(--accent),var(--accent2));border:0;color:#fff;font-weight:600}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .row.between{justify-content:space-between}
+
+  .verdict{display:flex;flex-direction:column;gap:12px}
+  .gauge{position:relative;height:14px;border-radius:999px;background:#0e1621;overflow:hidden;border:1px solid var(--line)}
+  .gauge .fill{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#f59e0b,#f43f5e);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .verdict .label{font-size:24px;font-weight:700;letter-spacing:-.02em}
+  .verdict .prob{font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .pill{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+
+  .slider{width:100%;accent-color:var(--accent)}
+  .slider-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+  .thumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+  .thumb{background:#0e1621;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .thumb .cap{font-size:11.5px;color:var(--muted);padding:6px 9px;border-top:1px solid var(--line)}
+  .thumb canvas{display:block;width:100%;height:auto;background:#000}
+
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+  table.tbl th,table.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+  table.tbl th{color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.03em}
+  table.tbl td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+  .bar{height:6px;border-radius:4px;background:#0e1621;overflow:hidden;min-width:70px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .mono{font-family:var(--mono)}
+  .muted{color:var(--muted)}
+  .small{font-size:12.5px}
+  .hidden{display:none !important}
+
+  footer{border-top:1px solid var(--line);margin-top:40px;padding:22px 0 40px;color:var(--muted);font-size:12.5px}
+  footer .row{gap:16px}
+
+  @media (max-width:880px){
+    .grid.controls,.split{grid-template-columns:1fr}
+    .thumbs{grid-template-columns:1fr 1fr}
+    .top nav{display:none}
+  }
+  @media (max-width:560px){
+    .thumbs{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">AIGC Forensics <span>/ browser demo</span></div>
+    <nav>
+      <a href="#image">Image</a>
+      <a href="#audio">Audio</a>
+      <a href="#method">Method</a>
+      <a href="https://github.com/johnsonman/Frequency-Temporal-and-Cross-Modal-Forensics-for-Unified-AIGC-Detection">Repository ↗</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <div class="kicker">Client-side forensics · no upload · no server</div>
+  <h1>Frequency–Temporal &amp; Cross-Modal Forensics<br><em>interactive heuristic demo</em></h1>
+  <p class="lede">
+    Drop an image or an audio clip and this page computes the same feature families used by
+    <span class="mono">models/heuristic_detector.py</span> — FFT high-frequency ratio, SRM residual
+    statistics, local variance, JPEG blockiness, colour entropy, spectral flatness, zero-crossing
+    rate and MFCC statistics — directly in your browser with Web Audio and canvas pixels.
+  </p>
+  <div class="note">
+    <strong>Scope.</strong> This is the calibrated <em>heuristic</em> baseline, not the neural detector.
+    CLIP ViT-B/16, Wav2Vec2 and the gated fusion head require PyTorch and several hundred MB of weights;
+    they are not shipped to the browser. Use <span class="mono">run_gui.py</span> locally for the full model.
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ================= IMAGE ================= -->
+<section id="image">
+  <div class="sec-head">
+    <h2>Image forensics</h2>
+    <span class="hint">JPEG / PNG / WebP — analysed at 512 px on the long side</span>
+  </div>
+
+  <div class="grid controls">
+    <div class="card">
+      <h3>1 · Input</h3>
+      <label class="drop" id="imgDrop">
+        <input type="file" id="imgInput" accept="image/*" />
+        <div class="big">Drop an image here</div>
+        <div class="small">or click to choose a file · nothing leaves this tab</div>
+      </label>
+      <div class="row between" style="margin-top:12px">
+        <span class="small muted" id="imgMeta">No image loaded</span>
+        <button class="btn" id="imgReset" disabled>Clear</button>
+      </div>
+
+      <div class="thumbs">
+        <div class="thumb"><canvas id="cvSrc" width="384" height="384"></canvas><div class="cap">Source (resized)</div></div>
+        <div class="thumb"><canvas id="cvSrm" width="384" height="384"></canvas><div class="cap">SRM residual ×8</div></div>
+        <div class="thumb"><canvas id="cvFft" width="384" height="384"></canvas><div class="cap">FFT log-magnitude</div></div>
+      </div>
+    </div>
+
+    <div class="card verdict">
+      <h3>2 · Heuristic decision</h3>
+      <div class="label" id="imgVerdict">Awaiting input</div>
+      <div class="prob" id="imgProb">p(AI) = —</div>
+      <div class="gauge"><div class="fill" id="imgGauge"></div></div>
+      <div class="row between small muted"><span>real</span><span>AI-generated</span></div>
+
+      <div style="margin-top:6px">
+        <div class="slider-row"><span>Decision threshold</span><span class="mono" id="thrOut">0.50</span></div>
+        <input class="slider" type="range" id="thr" min="0.20" max="0.80" step="0.01" value="0.50" />
+      </div>
+
+      <table class="tbl" id="imgTbl">
+        <thead><tr><th>Feature</th><th class="num">Value</th><th>Weight</th></tr></thead>
+        <tbody>
+          <tr><td>FFT high/low energy ratio</td><td class="num" id="f_freq">—</td><td><div class="bar"><i id="b_freq" style="width:0%"></i></div></td></tr>
+          <tr><td>SRM residual std / mean</td><td class="num" id="f_srm">—</td><td><div class="bar"><i id="b_srm" style="width:0%"></i></div></td></tr>
+          <tr><td>Local variance ratio</td><td class="num" id="f_lvar">—</td><td><div class="bar"><i id="b_lvar" style="width:0%"></i></div></td></tr>
+          <tr><td>8×8 blockiness</td><td class="num" id="f_block">—</td><td><div class="bar"><i id="b_block" style="width:0%"></i></div></td></tr>
+          <tr><td>Colour entropy (normalised)</td><td class="num" id="f_ent">—</td><td><div class="bar"><i id="b_ent" style="width:0%"></i></div></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin:2px 0 0">
+        “Weight” shows each term’s contribution to the aggregated score, mapped through the same
+        piecewise rules as the Python baseline.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= AUDIO ================= -->
+<section id="audio">
+  <div class="sec-head">
+    <h2>Audio forensics</h2>
+    <span class="hint">WAV / MP3 / M4A / OGG — decoded to 16 kHz mono</span>
+  </div>
+
+  <div class="grid controls">
+    <div class="card">
+      <h3>1 · Input</h3>
+      <label class="drop" id="audDrop" style="min-height:170px">
+        <input type="file" id="audInput" accept="audio/*" />
+        <div class="big">Drop an audio clip here</div>
+        <div class="small">or click to choose a file · decoded locally with Web Audio</div>
+      </label>
+      <div class="row between" style="margin-top:12px">
+        <span class="small muted" id="audMeta">No audio loaded</span>
+        <button class="btn" id="audReset" disabled>Clear</button>
+      </div>
+      <div class="thumb" style="margin-top:12px">
+        <canvas id="cvSpec" width="760" height="260" style="aspect-ratio:auto;width:100%"></canvas>
+        <div class="cap">Log-Mel / linear STFT spectrogram (0–8 kHz shown)</div>
+      </div>
+    </div>
+
+    <div class="card verdict">
+      <h3>2 · Heuristic decision</h3>
+      <div class="label" id="audVerdict">Awaiting input</div>
+      <div class="prob" id="audProb">p(AI) = —</div>
+      <div class="gauge"><div class="fill" id="audGauge"></div></div>
+      <div class="row between small muted"><span>real</span><span>synthetic</span></div>
+
+      <table class="tbl" style="margin-top:6px">
+        <thead><tr><th>Feature</th><th class="num">Value</th><th>Weight</th></tr></thead>
+        <tbody>
+          <tr><td>Spectral flatness</td><td class="num" id="a_flat">—</td><td><div class="bar"><i id="ab_flat" style="width:0%"></i></div></td></tr>
+          <tr><td>ZCR mean</td><td class="num" id="a_zcr">—</td><td><div class="bar"><i id="ab_zcr" style="width:0%"></i></div></td></tr>
+          <tr><td>ZCR std / mean</td><td class="num" id="a_zcrr">—</td><td><div class="bar"><i id="ab_zcrr" style="width:0%"></i></div></td></tr>
+          <tr><td>Spectral centroid (Hz)</td><td class="num" id="a_cent">—</td><td><div class="bar"><i id="ab_cent" style="width:0%"></i></div></td></tr>
+          <tr><td>Spectral roll-off 85 % (Hz)</td><td class="num" id="a_roll">—</td><td><div class="bar"><i id="ab_roll" style="width:0%"></i></div></td></tr>
+          <tr><td>MFCC |mean| · std ratio</td><td class="num" id="a_mfcc">—</td><td><div class="bar"><i id="ab_mfcc" style="width:0%"></i></div></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin:2px 0 0">
+        Spectral flatness is the strongest single cue: codec- and synthesis-heavy audio tends to
+        have a flatter envelope, while natural speech keeps pronounced harmonic peaks.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= METHOD ================= -->
+<section id="method">
+  <div class="sec-head">
+    <h2>What runs where</h2>
+    <span class="hint">browser demo vs. the full pipeline</span>
+  </div>
+  <div class="split">
+    <div class="card">
+      <h3>In this page</h3>
+      <table class="tbl">
+        <tbody>
+          <tr><td>Image · FFT radial energy split</td><td class="num">JS radix-2 FFT, 512²</td></tr>
+          <tr><td>Image · SRM high-pass residual</td><td class="num">3×3 convolution</td></tr>
+          <tr><td>Image · local variance</td><td class="num">separable Gaussian σ=5</td></tr>
+          <tr><td>Image · blockiness / colour entropy</td><td class="num">pixel + histogram</td></tr>
+          <tr><td>Audio · STFT / flatness / ZCR</td><td class="num">1024-pt Hann, hop 512</td></tr>
+          <tr><td>Audio · centroid / roll-off / MFCC</td><td class="num">40 mel bands, DCT-II</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Not in this page</h3>
+      <table class="tbl">
+        <tbody>
+          <tr><td>CLIP ViT-B/16 image &amp; video branches</td><td class="num">PyTorch</td></tr>
+          <tr><td>Wav2Vec2 audio branch</td><td class="num">PyTorch</td></tr>
+          <tr><td>Multi-scale fusion (L3/L6/L12)</td><td class="num">PyTorch</td></tr>
+          <tr><td>Cross-modal consistency + gated fusion</td><td class="num">PyTorch</td></tr>
+          <tr><td>Calibrated decision thresholds</td><td class="num">checkpoints/*.json</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin:10px 0 0">
+        Run <span class="mono">python run_gui.py</span> for the complete multimodal detector, or
+        <span class="mono">python scripts/diagnose/_test_image_modules.py</span> for the 12-panel
+        per-module decomposition.
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap row between">
+    <span>Frequency–Temporal and Cross-Modal Forensics for Unified AIGC Detection · MIT</span>
+    <span class="row">
+      <a href="https://github.com/johnsonman/Frequency-Temporal-and-Cross-Modal-Forensics-for-Unified-AIGC-Detection">GitHub</a>
+      <a href="https://github.com/johnsonman/Frequency-Temporal-and-Cross-Modal-Forensics-for-Unified-AIGC-Detection#readme">README</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Shared helpers
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+function makeCanvas(cv, w, h) {
+  cv.width = w; cv.height = h;
+  return cv.getContext("2d", { willReadFrequently: true });
+}
+
+/* Grayscale from RGBA */
+function toGray(data, w, h) {
+  const g = new Float32Array(w * h);
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    g[p] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+  }
+  return g;
+}
+
+/* ---------- FFT (iterative radix-2) ---------- */
+function fft1d(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      let t = re[i]; re[i] = re[j]; re[j] = t;
+      t = im[i]; im[i] = im[j]; im[j] = t;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const ur = re[i + k], ui = im[i + k];
+        const vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci;
+        const vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+        re[i + k] = ur + vr; im[i + k] = ui + vi;
+        re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+        const ncr = cr * wr - ci * wi;
+        ci = cr * wi + ci * wr; cr = ncr;
+      }
+    }
+  }
+}
+function fft2(gray, n) {
+  const re = new Float64Array(n * n), im = new Float64Array(n * n);
+  for (let i = 0; i < n * n; i++) re[i] = gray[i];
+  const rr = new Float64Array(n), ri = new Float64Array(n);
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) { rr[x] = re[y * n + x]; ri[x] = im[y * n + x]; }
+    fft1d(rr, ri);
+    for (let x = 0; x < n; x++) { re[y * n + x] = rr[x]; im[y * n + x] = ri[x]; }
+  }
+  for (let x = 0; x < n; x++) {
+    for (let y = 0; y < n; y++) { rr[y] = re[y * n + x]; ri[y] = im[y * n + x]; }
+    fft1d(rr, ri);
+    for (let y = 0; y < n; y++) { re[y * n + x] = rr[y]; im[y * n + x] = ri[y]; }
+  }
+  return { re, im };
+}
+
+/* ---------- colour map (viridis-ish) ---------- */
+const CMAP = [
+  [0.00, [8, 12, 30]], [0.22, [32, 62, 128]], [0.42, [26, 145, 160]],
+  [0.62, [122, 200, 92]], [0.80, [246, 205, 60]], [1.00, [250, 250, 220]],
+];
+function cmap(t) {
+  t = clamp(t, 0, 1);
+  for (let i = 1; i < CMAP.length; i++) {
+    if (t <= CMAP[i][0]) {
+      const [t0, c0] = CMAP[i - 1], [t1, c1] = CMAP[i];
+      const k = (t - t0) / (t1 - t0);
+      return [c0[0] + (c1[0] - c0[0]) * k, c0[1] + (c1[1] - c0[1]) * k, c0[2] + (c1[2] - c0[2]) * k];
+    }
+  }
+  return CMAP[CMAP.length - 1][1];
+}
+
+/* ============================================================
+   IMAGE PIPELINE  (mirrors models/heuristic_detector.py)
+   ============================================================ */
+const N = 512;
+let imgGray = null, imgSize = 0;
+
+function resizeToGray(img) {
+  const scale = N / Math.max(img.width, img.height);
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  return { gray: toGray(d, w, h), w, h, rgba: d };
+}
+
+/* pad / crop into N×N for FFT */
+function toSquare(gray, w, h) {
+  const out = new Float32Array(N * N);
+  const ox = (N - w) >> 1, oy = (N - h) >> 1;
+  for (let y = 0; y < h; y++) {
+    const dy = y + oy;
+    if (dy < 0 || dy >= N) continue;
+    for (let x = 0; x < w; x++) {
+      const dx = x + ox;
+      if (dx >= 0 && dx < N) out[dy * N + dx] = gray[y * w + x];
+    }
+  }
+  return out;
+}
+
+/* FFT high/low radial ratio */
+function fftFeature(sq) {
+  const { re, im } = fft2(sq, N);
+  const mag = new Float32Array(N * N);
+  let highSum = 0, highN = 0, lowSum = 0, lowN = 0;
+  const c = N / 2, radius = Math.min(N, N) / 8;
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const i = y * N + x;
+      const m = Math.hypot(re[i], im[i]);
+      mag[i] = m;
+      const dx = x - c, dy = y - c;
+      if (dx * dx + dy * dy <= radius * radius) { lowSum += m; lowN++; }
+      else { highSum += m; highN++; }
+    }
+  }
+  return { ratio: (highSum / Math.max(highN, 1)) / ((lowSum / Math.max(lowN, 1)) + 1e-8), mag };
+}
+
+/* 3x3 high-pass residual (SRM-style) */
+const SRM_K = [0, 1, 0, 1, -4, 1, 0, 1, 0];
+function srmResidual(gray, w, h) {
+  const res = new Float32Array(w * h);
+  let absSum = 0;
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      let s = 0, k = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) s += gray[(y + dy) * w + (x + dx)] * SRM_K[k++];
+      res[y * w + x] = s;
+      absSum += Math.abs(s);
+    }
+  }
+  const mean = absSum / ((w - 2) * (h - 2));
+  let varSum = 0;
+  for (let i = 0; i < res.length; i++) {
+    const d = Math.abs(res[i]) - mean; varSum += d * d;
+  }
+  const std = Math.sqrt(varSum / res.length);
+  return { res, ratio: std / (mean + 1e-8), mean, std };
+}
+
+/* separable gaussian blur */
+function gaussBlur(gray, w, h, radius, sigma) {
+  const k = new Float32Array(2 * radius + 1);
+  let ks = 0;
+  for (let i = -radius; i <= radius; i++) { k[i + radius] = Math.exp(-(i * i) / (2 * sigma * sigma)); ks += k[i + radius]; }
+  for (let i = 0; i < k.length; i++) k[i] /= ks;
+  const tmp = new Float32Array(w * h), out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let s = 0;
+    for (let i = -radius; i <= radius; i++) s += gray[y * w + clamp(x + i, 0, w - 1)] * k[i + radius];
+    tmp[y * w + x] = s;
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let s = 0;
+    for (let i = -radius; i <= radius; i++) s += tmp[clamp(y + i, 0, h - 1) * w + x] * k[i + radius];
+    out[y * w + x] = s;
+  }
+  return out;
+}
+
+function localVarianceFeature(gray, w, h) {
+  const blur = gaussBlur(gray, w, h, 10, 5);
+  let vSum = 0;
+  for (let i = 0; i < gray.length; i++) { const d = gray[i] - blur[i]; vSum += d * d; }
+  vSum /= gray.length;
+  let m = 0; for (let i = 0; i < gray.length; i++) m += gray[i]; m /= gray.length;
+  let v = 0; for (let i = 0; i < gray.length; i++) { const d = gray[i] - m; v += d * d; } v /= gray.length;
+  return vSum / (v + 1e-8);
+}
+
+function blockinessFeature(gray, w, h) {
+  const hb = Math.floor(h / 8), wb = Math.floor(w / 8);
+  let s = 0, n = 0;
+  for (let i = 0; i < hb - 1; i++) {
+    for (let j = 0; j < wb; j++) {
+      const y = (i + 1) * 8;
+      s += Math.abs(gray[y * w + j * 8] - gray[(y - 1) * w + j * 8]);
+      n++;
+    }
+  }
+  return n ? s / n : 0.5;
+}
+
+function colorEntropyFeature(rgba) {
+  const hist = new Float64Array(256);
+  for (let i = 0; i < rgba.length; i += 4) hist[rgba[i]]++;
+  let total = 0; for (let i = 0; i < 256; i++) total += hist[i];
+  let H = 0;
+  for (let i = 0; i < 256; i++) {
+    const p = hist[i] / (total + 1e-8);
+    if (p > 0) H -= p * Math.log2(p);
+  }
+  return H / 8; /* log2(256) */
+}
+
+/* same piecewise rules as score_image_from_heuristics() */
+function scoreImage(h) {
+  const terms = [];
+  const freq = h.freq;
+  if (freq > 5.0) terms.push(["freq", clamp(freq / 10.0, 0, 1)]);
+  else if (freq < 0.01) terms.push(["freq", 0.7]);
+  else terms.push(["freq", Math.max(0.3, Math.min(freq * 0.5, 0.7))]);
+
+  const srm = h.srm;
+  if (srm < 0.8) terms.push(["srm", Math.min(0.6 + (0.8 - srm) * 0.5, 1)]);
+  else terms.push(["srm", Math.max(0.2, 0.8 - srm * 0.2)]);
+
+  terms.push(["lvar", Math.max(0.3, Math.min(0.7, h.lvar * 0.8 + 0.2))]);
+  terms.push(["block", Math.max(0.3, Math.min(0.7, h.block / 10.0))]);
+  terms.push(["ent", h.ent > 0.9 ? 0.6 : Math.max(0.3, h.ent)]);
+  const p = terms.reduce((a, b) => a + b[1], 0) / terms.length;
+  return { p, terms };
+}
+
+/* ---------- rendering ---------- */
+function drawSource(rgba, w, h) {
+  const ctx = makeCanvas($("cvSrc"), w, h);
+  const id = ctx.createImageData(w, h);
+  id.data.set(rgba);
+  ctx.putImageData(id, 0, 0);
+}
+function drawResidual(res, w, h) {
+  const ctx = makeCanvas($("cvSrm"), w, h);
+  const id = ctx.createImageData(w, h);
+  let max = 1e-6;
+  for (let i = 0; i < res.length; i++) max = Math.max(max, Math.abs(res[i]));
+  for (let i = 0, p = 0; i < res.length; i++, p += 4) {
+    const v = clamp((Math.abs(res[i]) / max) * 8, 0, 1);
+    const [r, g, b] = cmap(v);
+    id.data[p] = r; id.data[p + 1] = g; id.data[p + 2] = b; id.data[p + 3] = 255;
+  }
+  ctx.putImageData(id, 0, 0);
+}
+function drawSpectrum(mag) {
+  const ctx = makeCanvas($("cvFft"), N, N);
+  const id = ctx.createImageData(N, N);
+  let max = 1e-6;
+  for (let i = 0; i < mag.length; i++) max = Math.max(max, mag[i]);
+  const lg = Math.log1p(max);
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const sx = (x + N / 2) % N, sy = (y + N / 2) % N;     /* fftshift */
+      const v = Math.log1p(mag[sy * N + sx]) / (lg + 1e-8);
+      const [r, g, b] = cmap(v);
+      const p = (y * N + x) * 4;
+      id.data[p] = r; id.data[p + 1] = g; id.data[p + 2] = b; id.data[p + 3] = 255;
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+function paintImageResult(h, out) {
+  const thr = parseFloat($("thr").value);
+  const p = out.p;
+  const isAI = p > thr;
+  $("imgVerdict").textContent = isAI ? "Likely AI-generated" : "Likely real";
+  $("imgVerdict").style.color = isAI ? "var(--fake)" : "var(--real)";
+  $("imgProb").textContent = `p(AI) = ${p.toFixed(3)}  ·  threshold ${thr.toFixed(2)}  ·  margin ${(p - thr >= 0 ? "+" : "")}${(p - thr).toFixed(3)}`;
+  $("imgGauge").style.width = (p * 100).toFixed(1) + "%";
+
+  $("f_freq").textContent = h.freq.toFixed(4);
+  $("f_srm").textContent = h.srm.toFixed(4);
+  $("f_lvar").textContent = h.lvar.toFixed(4);
+  $("f_block").textContent = h.block.toFixed(2);
+  $("f_ent").textContent = h.ent.toFixed(4);
+
+  const map = { freq: "freq", srm: "srm", lvar: "lvar", block: "block", ent: "ent" };
+  for (const [k, v] of out.terms) {
+    const bar = $("b_" + map[k]);
+    if (bar) bar.style.width = (clamp(v, 0, 1) * 100).toFixed(0) + "%";
+  }
+}
+
+async function loadImage(file) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+  URL.revokeObjectURL(url);
+
+  const { gray, w, h, rgba } = resizeToGray(img);
+  imgGray = gray; imgSize = { w, h };
+
+  drawSource(rgba, w, h);
+  const { ratio, mag } = fftFeature(toSquare(gray, w, h));
+  drawSpectrum(mag);
+  const srm = srmResidual(gray, w, h);
+  drawResidual(srm.res, w, h);
+
+  const hFeat = {
+    freq: ratio,
+    srm: srm.ratio,
+    lvar: localVarianceFeature(gray, w, h),
+    block: blockinessFeature(gray, w, h),
+    ent: colorEntropyFeature(rgba),
+  };
+  const out = scoreImage(hFeat);
+  window.__lastImage = { h: hFeat, out };
+  paintImageResult(hFeat, out);
+
+  $("imgMeta").textContent = `${file.name} · ${img.width}×${img.height} → ${w}×${h} · ${(file.size / 1024).toFixed(0)} KB`;
+  $("imgReset").disabled = false;
+}
+
+/* ============================================================
+   AUDIO PIPELINE  (mirrors models/heuristic_detector.py)
+   ============================================================ */
+const SR = 16000, WIN = 1024, HOP = 512;
+
+function hann(n) {
+  const w = new Float32Array(n);
+  for (let i = 0; i < n; i++) w[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1));
+  return w;
+}
+
+/* mel scale helpers */
+const mel = (f) => 2595 * Math.log10(1 + f / 700);
+const imel = (m) => 700 * (Math.pow(10, m / 2595) - 1);
+
+function melFilterbank(nMels, nFft, sr) {
+  const nBins = nFft / 2 + 1;
+  const lo = mel(0), hi = mel(sr / 2);
+  const pts = [];
+  for (let i = 0; i < nMels + 2; i++) pts.push(imel(lo + (hi - lo) * i / (nMels + 1)));
+  const fb = [];
+  for (let m = 1; m <= nMels; m++) {
+    const f = new Float32Array(nBins);
+    const [a, b, c] = [pts[m - 1], pts[m], pts[m + 1]];
+    for (let k = 0; k < nBins; k++) {
+      const fk = k * sr / nFft;
+      if (fk >= a && fk <= b) f[k] = (fk - a) / (b - a + 1e-9);
+      else if (fk > b && fk <= c) f[k] = (c - fk) / (c - b + 1e-9);
+    }
+    fb.push(f);
+  }
+  return fb;
+}
+
+function dct2(x, nOut) {
+  const M = x.length, out = new Float32Array(nOut);
+  for (let k = 0; k < nOut; k++) {
+    let s = 0;
+    for (let n = 0; n < M; n++) s += x[n] * Math.cos(Math.PI * k * (n + 0.5) / M);
+    out[k] = s * (k === 0 ? Math.sqrt(1 / M) : Math.sqrt(2 / M));
+  }
+  return out;
+}
+
+async function decodeAudio(file) {
+  const buf = await file.arrayBuffer();
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  const decoded = await ac.decodeAudioData(buf);
+  /* resample to 16 kHz mono via OfflineAudioContext */
+  const dur = Math.min(decoded.duration, 12);
+  const off = new OfflineAudioContext(1, Math.ceil(dur * SR), SR);
+  const src = off.createBufferSource();
+  src.buffer = decoded; src.connect(off.destination); src.start();
+  const rendered = await off.startRendering();
+  await ac.close();
+  return rendered.getChannelData(0);
+}
+
+function analyzeAudio(y) {
+  const w = hann(WIN);
+  const frames = Math.floor((y.length - WIN) / HOP) + 1;
+  if (frames < 2) throw new Error("clip too short");
+
+  let zc = 0;
+  for (let i = 1; i < y.length; i++) if ((y[i - 1] >= 0) !== (y[i] >= 0)) zc++;
+  const zcrMean = zc / y.length;
+
+  /* frame-wise zero crossing rate */
+  const zcrs = [];
+  for (let f = 0; f < frames; f++) {
+    const off = f * HOP; let c = 0;
+    for (let i = off + 1; i < off + WIN; i++) if ((y[i - 1] >= 0) !== (y[i] >= 0)) c++;
+    zcrs.push(c / WIN);
+  }
+  const zcrStd = std(zcrs, mean(zcrs));
+
+  const fb = melFilterbank(40, WIN, SR);
+  const nMels = fb.length;
+  const melSpec = [];
+  const flat = [], centroid = [], rolloff = [];
+  const mfccFrames = [];
+  const nBins = WIN / 2 + 1;
+  const re = new Float64Array(WIN), im = new Float64Array(WIN);
+
+  for (let f = 0; f < frames; f++) {
+    const off = f * HOP;
+    for (let i = 0; i < WIN; i++) { re[i] = y[off + i] * w[i]; im[i] = 0; }
+    fft1d(re, im);
+
+    const mag = new Float32Array(nBins);
+    let gm = 0, am = 0;
+    for (let k = 0; k < nBins; k++) {
+      const m = Math.hypot(re[k], im[k]) + 1e-10;
+      mag[k] = m; gm += Math.log(m); am += m;
+    }
+    flat.push(Math.exp(gm / nBins) / (am / nBins));
+
+    let num = 0, den = 0;
+    for (let k = 0; k < nBins; k++) { const fk = k * SR / WIN; num += fk * mag[k]; den += mag[k]; }
+    centroid.push(num / (den + 1e-9));
+
+    const target = 0.85 * den; let acc = 0, ro = 0;
+    for (let k = 0; k < nBins; k++) { acc += mag[k]; if (acc >= target) { ro = k * SR / WIN; break; } }
+    rolloff.push(ro);
+
+    const band = new Float32Array(nMels);
+    for (let m = 0; m < nMels; m++) {
+      let s = 0;
+      for (let k = 0; k < nBins; k++) s += mag[k] * fb[m][k];
+      band[m] = Math.log(s + 1e-9);
+    }
+    melSpec.push(band);
+    mfccFrames.push(dct2(band, 20));
+  }
+
+  /* aggregate MFCC */
+  const nMfcc = 20;
+  let mfccAbsSum = 0, mfccCount = 0;
+  const coefMean = new Float64Array(nMfcc);
+  for (const fr of mfccFrames) for (let i = 0; i < nMfcc; i++) coefMean[i] += fr[i];
+  for (let i = 0; i < nMfcc; i++) coefMean[i] /= mfccFrames.length;
+  const coefStd = new Float64Array(nMfcc);
+  for (const fr of mfccFrames) for (let i = 0; i < nMfcc; i++) {
+    const d = fr[i] - coefMean[i]; coefStd[i] += d * d;
+  }
+  for (let i = 0; i < nMfcc; i++) coefStd[i] = Math.sqrt(coefStd[i] / mfccFrames.length);
+  let absMeans = 0, absStds = 0;
+  for (let i = 0; i < nMfcc; i++) { absMeans += Math.abs(coefMean[i]); absStds += coefStd[i]; }
+
+  return {
+    flatness: mean(flat),
+    zcrMean, zcrStd,
+    centroid: mean(centroid),
+    rolloff: mean(rolloff),
+    mfccMean: absMeans / nMfcc,
+    mfccRatio: absStds / (absMeans + 1e-8),
+    melSpec, frames,
+  };
+}
+
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+function std(a, m) { let s = 0; for (const v of a) { const d = v - m; s += d * d; } return Math.sqrt(s / a.length); }
+
+/* same piecewise rules as score_audio_from_heuristics() */
+function scoreAudio(h) {
+  const terms = [];
+  const sf = h.flatness;
+  terms.push(["flat", sf > 0.1 ? Math.min(0.5 + sf * 3.0, 0.8) : Math.max(0.3, 0.5 - sf)]);
+
+  const zr = h.zcrMean > 0 ? h.zcrStd / h.zcrMean : null;
+  terms.push(["zcr", zr === null ? 0.5 : Math.max(0.3, Math.min(0.7, 0.7 - zr))]);
+
+  terms.push(["mfcc", Math.max(0.3, Math.min(0.7, h.mfccRatio))]);
+  terms.push(["cent", Math.max(0.3, Math.min(0.7, Math.min(h.centroid / 5000.0, 1.0)))]);
+  /* roll-off is reported but not part of the Python score */
+  const p = terms.reduce((a, b) => a + b[1], 0) / terms.length;
+  return { p, terms };
+}
+
+function drawSpectrogram(melSpec) {
+  const cv = $("cvSpec");
+  const W = cv.clientWidth || 760, H = 260;
+  const ctx = makeCanvas(cv, W, H);
+  const frames = melSpec.length, bands = melSpec[0].length;
+
+  /* normalise */
+  let lo = Infinity, hi = -Infinity;
+  for (const fr of melSpec) for (const v of fr) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  const span = hi - lo + 1e-9;
+  const id = ctx.createImageData(W, H);
+  for (let x = 0; x < W; x++) {
+    const fi = Math.min(frames - 1, Math.floor(x / W * frames));
+    for (let y = 0; y < H; y++) {
+      /* top row = high frequency */
+      const bi = Math.min(bands - 1, Math.floor((1 - y / H) * bands));
+      const v = (melSpec[fi][bi] - lo) / span;
+      const [r, g, b] = cmap(v);
+      const p = (y * W + x) * 4;
+      id.data[p] = r; id.data[p + 1] = g; id.data[p + 2] = b; id.data[p + 3] = 255;
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+function paintAudioResult(h, out) {
+  const p = out.p, isAI = p > 0.5;
+  $("audVerdict").textContent = isAI ? "Likely synthetic" : "Likely real";
+  $("audVerdict").style.color = isAI ? "var(--fake)" : "var(--real)";
+  $("audProb").textContent = `p(AI) = ${p.toFixed(3)}`;
+  $("audGauge").style.width = (p * 100).toFixed(1) + "%";
+
+  $("a_flat").textContent = h.flatness.toFixed(4);
+  $("a_zcr").textContent = h.zcrMean.toFixed(4);
+  $("a_zcrr").textContent = (h.zcrStd / (h.zcrMean + 1e-8)).toFixed(3);
+  $("a_cent").textContent = h.centroid.toFixed(0);
+  $("a_roll").textContent = h.rolloff.toFixed(0);
+  $("a_mfcc").textContent = h.mfccRatio.toFixed(3);
+
+  for (const [k, v] of out.terms) {
+    const bar = $("ab_" + k);
+    if (bar) bar.style.width = (clamp(v, 0, 1) * 100).toFixed(0) + "%";
+  }
+  const zr = h.zcrStd / (h.zcrMean + 1e-8);
+  $("ab_zcr").style.width = (clamp(h.zcrMean * 4, 0, 1) * 100).toFixed(0) + "%";
+  $("ab_zcrr").style.width = (clamp(0.7 - zr, 0, 1) * 100).toFixed(0) + "%";
+  $("ab_roll").style.width = (clamp(h.rolloff / 8000, 0, 1) * 100).toFixed(0) + "%";
+}
+
+async function loadAudio(file) {
+  $("audMeta").textContent = "Decoding…";
+  const y = await decodeAudio(file);
+  const h = analyzeAudio(y);
+  drawSpectrogram(h.melSpec);
+  paintAudioResult(h, scoreAudio(h));
+  $("audMeta").textContent = `${file.name} · ${(y.length / SR).toFixed(1)} s @16 kHz · ${(file.size / 1024).toFixed(0)} KB`;
+  $("audReset").disabled = false;
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+function dropZone(el, inputEl, handler) {
+  const input = $(inputEl);
+  el.addEventListener("click", (e) => { if (e.target.tagName !== "INPUT") input.click(); });
+  input.addEventListener("change", () => { if (input.files[0]) handler(input.files[0]); });
+  ["dragenter", "dragover"].forEach((ev) =>
+    el.addEventListener(ev, (e) => { e.preventDefault(); el.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    el.addEventListener(ev, (e) => { e.preventDefault(); el.classList.remove("over"); }));
+  el.addEventListener("drop", (e) => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handler(f);
+  });
+}
+
+dropZone($("imgDrop"), "imgInput", (f) => {
+  loadImage(f).catch((err) => { $("imgMeta").textContent = "Failed: " + err.message; });
+});
+dropZone($("audDrop"), "audInput", (f) => {
+  loadAudio(f).catch((err) => { $("audMeta").textContent = "Failed: " + err.message; });
+});
+
+$("imgReset").addEventListener("click", () => {
+  ["cvSrc", "cvSrm", "cvFft"].forEach((id) => {
+    const cv = $(id); const c = cv.getContext("2d"); c.clearRect(0, 0, cv.width, cv.height);
+  });
+  $("imgMeta").textContent = "No image loaded";
+  $("imgVerdict").textContent = "Awaiting input";
+  $("imgVerdict").style.color = "var(--tx)";
+  $("imgProb").textContent = "p(AI) = —";
+  $("imgGauge").style.width = "0%";
+  ["freq", "srm", "lvar", "block", "ent"].forEach((k) => {
+    $("f_" + k).textContent = "—"; $("b_" + k).style.width = "0%";
+  });
+  $("imgInput").value = ""; $("imgReset").disabled = true; imgGray = null;
+});
+
+$("audReset").addEventListener("click", () => {
+  const cv = $("cvSpec"); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
+  $("audMeta").textContent = "No audio loaded";
+  $("audVerdict").textContent = "Awaiting input";
+  $("audVerdict").style.color = "var(--tx)";
+  $("audProb").textContent = "p(AI) = —";
+  $("audGauge").style.width = "0%";
+  ["flat", "zcr", "zcrr", "cent", "roll", "mfcc"].forEach((k) => {
+    $("a_" + k).textContent = "—"; $("ab_" + k).style.width = "0%";
+  });
+  $("audInput").value = ""; $("audReset").disabled = true;
+});
+
+$("thr").addEventListener("input", () => {
+  $("thrOut").textContent = parseFloat($("thr").value).toFixed(2);
+  if (window.__lastImage) paintImageResult(window.__lastImage.h, window.__lastImage.out);
+});
+</script>
+</body>
+</html>

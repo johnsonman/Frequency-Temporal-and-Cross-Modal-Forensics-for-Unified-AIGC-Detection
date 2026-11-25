@@ -5,6 +5,11 @@ plus frequency-domain forensics, temporal aggregation and gated cross-modal fusi
 
 ![Multimodal architecture](docs/architecture/01_multimodal_full.svg)
 
+**Live demo:** <https://johnsonman.github.io/Frequency-Temporal-and-Cross-Modal-Forensics-for-Unified-AIGC-Detection/>
+— drop an image or an audio clip and the heuristic feature family (FFT ratio, SRM residual,
+local variance, blockiness, colour entropy, spectral flatness, ZCR, MFCC) is computed in the
+browser. No upload, no server; the neural branches still require PyTorch locally.
+
 ---
 
 ## Overview
@@ -104,6 +109,7 @@ Backbones: `openai/clip-vit-base-patch16` (image/video, shared) and
 ├── models/                      # detector and all sub-modules
 ├── utils/                       # visualization helpers
 ├── docs/
+│   ├── index.html               # browser demo served by GitHub Pages
 │   ├── architecture/            # 6 architecture diagrams
 │   ├── showcase/                # example diagnostic outputs (JPEG)
 │   └── AIGC_Detection_System.pptx
